@@ -5,7 +5,7 @@ from gradio_client import Client
 # Load your CSV file into a pandas DataFrame
 df = pd.read_csv("Medicine_Details.csv")
 
-# Initialize the Gradio client with error handling
+# Initialize the Gradio client
 try:
     client = Client("ruslanmv/Medical-Llama3-v2")
 except Exception as e:
@@ -34,8 +34,8 @@ def search_in_csv(medicine_name):
 def fetch_from_llama3(message):
     try:
         result = client.predict(
-            message=message,
-            system_message="You are a Medical AI Assistant. Please be thorough and provide an informative answer. If you don't know the answer to a specific medical inquiry, advise seeking professional help.",
+            message=f"Please provide detailed information regarding the following medicine query: {message}",
+            system_message="You are a Medical AI Assistant focused on providing detailed information about medicines. Please answer the query with the relevant details.",
             max_tokens=512,
             temperature=0.8,
             top_p=0.9,
