@@ -1,16 +1,18 @@
 import pandas as pd
+import requests
+import json
 import streamlit as st
 from gradio_client import Client
+
+# Define your Google Gemini API key and endpoint
+GEMINI_API_KEY = "AIzaSyA9pYRt95gwUm3UvoZTy30PQ0P65F8niYA"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
 
 # Load your CSV file into a pandas DataFrame
 df = pd.read_csv("Medicine_Details.csv")
 
 # Initialize the Gradio client
-try:
-    client = Client("ruslanmv/Medical-Llama3-v2")
-except Exception as e:
-    st.error(f"Failed to load the model: {e}")
-    st.stop()
+client = Client("ruslanmv/Medical-Llama3-v2")
 
 # Function to search for medicine details in the CSV dataset
 def search_in_csv(medicine_name):
@@ -34,8 +36,8 @@ def search_in_csv(medicine_name):
 def fetch_from_llama3(message):
     try:
         result = client.predict(
-            message=f"Please provide detailed information regarding the following medicine query: {message}",
-            system_message="You are a Medical AI Assistant focused on providing detailed information about medicines. Please answer the query with the relevant details.",
+            message=message,
+            system_message="You are a Medical AI Assistant. Please be thorough and provide an informative answer. If you don't know the answer to a specific medical inquiry, advise seeking professional help.",
             max_tokens=512,
             temperature=0.8,
             top_p=0.9,
@@ -44,6 +46,36 @@ def fetch_from_llama3(message):
         return result
     except Exception as e:
         return f"Error generating response from model: {e}"
+
+# Function to fetch information from Google Gemini
+def fetch_from_gemini(prompt):
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ]
+    }
+
+    response = requests.post(f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", headers=headers, data=json.dumps(data))
+    
+    if response.status_code == 200:
+        try:
+            result = response.json()
+            if 'candidates' in result and len(result['candidates']) > 0:
+                return result['candidates'][0]['content']['parts'][0]['text']
+            else:
+                return "I'm sorry, but I couldn't retrieve the information you requested."
+        except json.JSONDecodeError:
+            return "I'm sorry, there was an error processing your request."
+    else:
+        return f"Error fetching information from Google Gemini: {response.status_code} - {response.text}"
 
 # Function to handle the submission
 def submit_data():
@@ -68,7 +100,10 @@ def submit_data():
             if llama3_response:
                 st.session_state.conversation.append(f"<div class='assistant-message'><strong>Assistant:</strong> {llama3_response}</div>")
             else:
-                st.session_state.conversation.append(f"<div class='assistant-message'><strong>Assistant:</strong> Sorry, I couldn't find any relevant information.</div>")
+                # If not found in Llama3, fetch from Google Gemini
+                st.session_state.conversation.append("<div class='assistant-message'><strong>Assistant:</strong> I couldn't find details for this medicine in the dataset or model, so I'm fetching information from Google Gemini...</div>")
+                response = fetch_from_gemini(user_input)
+                st.session_state.conversation.append(f"<div class='assistant-message'><strong>Assistant:</strong> {response}</div>")
 
         # Clear input field
         st.session_state.input_text = ""
@@ -117,5 +152,5 @@ def main():
     # Input box for the user query
     st.text_input("Type your message here:", value="", key="input_text", on_change=submit_data)
 
-if __name__ == "__main__":
+if _name_ == '_main_':
     main()
