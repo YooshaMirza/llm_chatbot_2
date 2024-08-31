@@ -1,0 +1,5 @@
+streamlit
+pandas
+gradio_client
+langdetect
+googletrans==4.0.0-rc1
