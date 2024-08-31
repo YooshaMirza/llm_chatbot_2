@@ -152,5 +152,5 @@ def main():
     # Input box for the user query
     st.text_input("Type your message here:", value="", key="input_text", on_change=submit_data)
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     main()
