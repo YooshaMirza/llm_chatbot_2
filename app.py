@@ -5,8 +5,12 @@ from gradio_client import Client
 # Load your CSV file into a pandas DataFrame
 df = pd.read_csv("Medicine_Details.csv")
 
-# Initialize the Gradio client
-client = Client("ruslanmv/Medical-Llama3-v2")
+# Initialize the Gradio client with error handling
+try:
+    client = Client("ruslanmv/Medical-Llama3-v2")
+except Exception as e:
+    st.error(f"Failed to load the model: {e}")
+    st.stop()
 
 # Function to search for medicine details in the CSV dataset
 def search_in_csv(medicine_name):
@@ -113,5 +117,5 @@ def main():
     # Input box for the user query
     st.text_input("Type your message here:", value="", key="input_text", on_change=submit_data)
 
-if _name_ == '_main_':
+if __name__ == "__main__":
     main()
