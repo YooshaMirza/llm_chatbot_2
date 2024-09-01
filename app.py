@@ -110,10 +110,10 @@ def submit_data():
 
 # Streamlit app
 def main():
-    st.set_page_config(page_title="Medicine Information Chatbot", page_icon="💊", layout="wide")
+    st.set_page_config(page_title="MediCare Chatbot", page_icon="💊", layout="wide")
 
     # Sidebar for app title and instructions
-    st.sidebar.title("Medicine Information Chatbot 💬")
+    st.sidebar.title("MediCare Chatbot 💬")
     st.sidebar.write("Enter your query below and get information about medicines. The conversation history will be preserved until you close the bot.")
 
     # Initialize or retrieve the context from session state
